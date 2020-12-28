@@ -1,0 +1,42 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+sweeperbot = {editable = true, path = "."}
+discord-py = "*"
+sentry-sdk = "*"
+sqlalchemy-citext = "*"
+aiohttp = "*"
+async-timeout = "*"
+asyncio = "*"
+attrs = "*"
+cffi = "*"
+chardet = "*"
+idna = "*"
+multidict = "*"
+psutil = "*"
+Layer-7-Utilities = "*"
+pycparser = "*"
+PyNaCl = "*"
+pytest = "*"
+six = "*"
+Sphinx = "*"
+sphinxcontrib-websupport = "*"
+SQLAlchemy = "*"
+websockets = "*"
+yarl = "*"
+parsedatetime = "*"
+py-dateutil = "*"
+asyncpg = "*"
+redis = "*"
+num2words = "*"
+urlextract = "*"
+setuptools = "*"
+pygments = "*"
+
+[requires]
+python_version = "3.7"
