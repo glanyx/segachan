@@ -125,11 +125,6 @@ class Info(commands.Cog):
                 inline=True,
             )
             embed.add_field(
-                name="Support Server",
-                value=f"[Click here.]({self.bot.constants.support_invite_link})",
-                inline=True,
-            )
-            embed.add_field(
                 name="Bot Version", value=f"{self.bot.version}", inline=True
             )
             embed.add_field(
@@ -140,11 +135,6 @@ class Info(commands.Cog):
             )
             embed.add_field(name="CPU Usage", value=f"{cpu_usage:.2f}%", inline=True)
             embed.add_field(name="Bot Uptime", value=f"{uptime}", inline=True)
-            embed.add_field(
-                name="Donation Link",
-                value=f"Appreciate the project and want to donate? [Please click here.]({self.bot.constants.patreon_link})",
-                inline=False,
-            )
 
             await ctx.send(embed=embed)
         except discord.HTTPException as err:

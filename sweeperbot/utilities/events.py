@@ -14,6 +14,8 @@ class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    
+
     @commands.Cog.listener()
     async def on_member_join(self, member):
         session = self.bot.helpers.get_db_session()
@@ -260,7 +262,7 @@ class Events(commands.Cog):
             self.bot.log.exception(
                 f"Error processing Member Part Event. {sys.exc_info()[ 0].__name__}: {err}"
             )
-
+    
     @commands.Cog.listener()
     async def on_message(self, msg):
         # Check if it's from a DM, then ignore it since we're processing this in the mod mail module
@@ -277,6 +279,14 @@ class Events(commands.Cog):
                 return
             session = self.bot.helpers.get_db_session()
             try:
+                # Check the configured requests channel
+                settings = self.bot.guild_settings.get(msg.guild.id)
+                request_channel = settings.request_channel
+                #if (
+                #    request_channel == msg.guild.id
+                #    and not msg.content.startswith(settings.bot_prefix)
+                #):
+
                 # Check if there is a user in the database already
                 db_user = (
                     session.query(models.User)

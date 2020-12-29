@@ -500,7 +500,7 @@ class Config(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     @config.group(invoke_without_command=False)
     async def suggestion(self, ctx):
-        """Base for the Suggestion configuration. See `suggestion channel` and `suggestino commands`"""
+        """Base for the Suggestion configuration. See `suggestion channel` and `suggestion commands`"""
         pass
 
     @commands.guild_only()

@@ -274,8 +274,8 @@ class ServerSetting(Base):
     bot_id = Column(BigInteger)
     admin_role = Column(BigInteger)
     mod_role = Column(BigInteger)
-    suggestion_channel = Column(BigInteger)
-    suggestion_channel_allowed = Column(ARRAY(BigInteger))
+    request_channel = Column(BigInteger)
+    request_channel_allowed = Column(ARRAY(BigInteger))
     activity_status = Column(ARRAY(String))
     activity_status_enabled = Column(Boolean, default=False)
     enabled = Column(
@@ -399,25 +399,6 @@ class AntiSpamServerSettings(Base):
         nullable=True,
         comment="Any integer value associated. Such as number of mentions allowed, quick message rate limit (messages per time period), etc.",
     )
-
-
-class Suggestions(Base):
-    """Records the suggestions use make, and number of votes"""
-
-    # Guild the suggestion is related to
-    server_id = Column(Integer, ForeignKey("server.id"))
-    server = relationship(Server, backref=backref("suggestions", uselist=True))
-    # User that made the suggestion
-    user_id = Column(Integer, ForeignKey("user.id"))
-    user = relationship(User, backref=backref("suggestions", uselist=True))
-    # ID of the message
-    message_id = Column(BigInteger, unique=True)
-    # Number of upvotes
-    upvotes = Column(Integer, default=0)
-    # Number of downvotes
-    downvotes = Column(Integer, default=0)
-    # The text of the suggestion
-    text = Column(CIText())
 
 
 class Requests(Base):

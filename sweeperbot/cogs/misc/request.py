@@ -1,3 +1,4 @@
+import asyncio
 import sys
 from datetime import datetime
 
@@ -16,7 +17,7 @@ class Request(commands.Cog):
     @commands.has_permissions(send_messages=True)
     @commands.guild_only()
     async def request(self, ctx, *, request_body):
-        """Takes input as a request and reposts it in a dedicated channel and provides voting reactions to show interest. Logs to database for record keeping.
+        """Takes input as a request and reposts it in a dedicated channel and provides voting reactions to show interest. Logs to database for record keeping. Detects duplication.
 
         Requires Permission
         -------------------
@@ -79,6 +80,71 @@ class Request(commands.Cog):
                 # Stop processing command if not done in right channel
                 return
 
+            # Check if request exists
+            guild_requests = (
+                session.query(models.Requests)
+                .filter(models.Server.discord_id == ctx.guild.id)
+                .all()
+            )
+
+            for singleRequest in guild_requests:
+                game_title = getattr(singleRequest, "text")
+                message_link = getattr(singleRequest, "message_id")
+                if (
+                    request_body[:1900].lower() in game_title.lower()
+                    or game_title.lower() in request_body[:1900].lower()
+                ):
+
+                    def check(reaction, user):
+                        return user == ctx.author and (
+                            reaction.emoji == self.bot.get_emoji(self.bot.constants.reactions["yes"])
+                            or reaction.emoji == self.bot.get_emoji(self.bot.constants.reactions["no"])
+                        )
+
+                    found_embed = discord.Embed(
+                        color=0xFFA500,
+                        title="I've found an existing request quite similar to yours! Is this the title you wanted to request?",
+                        description=f">>> {game_title}",
+                        timestamp=datetime.utcnow(),
+                    ).set_footer(
+                        text="This message will timeout in 60 seconds and your request will be removed without a response."
+                    )
+
+                    msg = await ctx.channel.send(embed=found_embed)
+
+                    yes = self.bot.get_emoji(self.bot.constants.reactions["yes"])
+                    no = self.bot.get_emoji(
+                        self.bot.constants.reactions["no"]
+                    )
+
+                    # Add the reactions
+                    for emoji in (yes, no):
+                        if emoji:
+                            await msg.add_reaction(emoji)
+
+                    try:
+                        reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=60.0)
+                    except asyncio.TimeoutError:
+                        await msg.delete()
+                        return
+                    else:
+                        await msg.delete()
+                        if reaction.emoji == self.bot.get_emoji(self.bot.constants.reactions["yes"]):
+                            await ctx.message.delete()
+
+                            existing_embed = discord.Embed(
+                                color=0x00CC00,
+                                title="Found it!",
+                                description=f"Great! You can view the existing request [here](https://discord.com/channels/{ctx.guild.id}/{ctx.channel.id}/{message_link}).\nRemember to upvote it!",
+                                timestamp=datetime.utcnow(),
+                            ).set_footer(
+                                text="This message will be removed in 10 seconds."
+                            )
+
+                            await (await ctx.channel.send(embed=existing_embed)).delete(delay=10)
+                            return
+                      
+
             # Create the embed of info
             embed = discord.Embed(
                 color=0x14738E,
@@ -88,7 +154,7 @@ class Request(commands.Cog):
             )
 
             embed.set_footer(
-                text=f"Usage: '{ctx.prefix}idea your idea' in {request_channel_allowed_clean}"
+                text=f"Usage: '{ctx.prefix}request [your game]' in {request_channel_allowed_clean}"
             )
 
             channel = ctx.message.guild.get_channel(request_channel)
