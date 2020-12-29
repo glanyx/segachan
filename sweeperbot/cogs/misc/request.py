@@ -13,7 +13,7 @@ class Request(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=["portrequest", "rq", "prq"])
+    @commands.command(aliases=["requestport", "rq", "rqp"])
     @commands.has_permissions(send_messages=True)
     @commands.guild_only()
     async def request(self, ctx, *, request_body):
@@ -39,6 +39,8 @@ class Request(commands.Cog):
             # Get channel ID's the command is allowed in
             guild = ctx.message.guild
             settings = self.bot.guild_settings.get(guild.id)
+            upvote_emoji = settings.upvote_emoji or self.bot.constants.reactions["upvote"]
+            downvote_emoji = settings.downvote_emoji or self.bot.constants.reactions["downvote"]
             request_channel = settings.request_channel
             request_channel_allowed = settings.request_channel_allowed
             if request_channel_allowed is None:
@@ -87,20 +89,24 @@ class Request(commands.Cog):
                 .all()
             )
 
+            # Loop through existing requests
             for singleRequest in guild_requests:
                 game_title = getattr(singleRequest, "text")
                 message_link = getattr(singleRequest, "message_id")
+                # Check for substrings in the text
                 if (
                     request_body[:1900].lower() in game_title.lower()
                     or game_title.lower() in request_body[:1900].lower()
                 ):
-
+                    
+                    # Check function for reactions (yes / no)
                     def check(reaction, user):
                         return user == ctx.author and (
-                            reaction.emoji == self.bot.get_emoji(self.bot.constants.reactions["yes"])
+                            reaction.emoji.id == self.bot.get_emoji(self.bot.constants.reactions["yes"])
                             or reaction.emoji == self.bot.get_emoji(self.bot.constants.reactions["no"])
                         )
 
+                    # Embed to display when a potential duplicate entry is found
                     found_embed = discord.Embed(
                         color=0xFFA500,
                         title="I've found an existing request quite similar to yours! Is this the title you wanted to request?",
@@ -112,10 +118,9 @@ class Request(commands.Cog):
 
                     msg = await ctx.channel.send(embed=found_embed)
 
+                    # Reactions for the user to react on
                     yes = self.bot.get_emoji(self.bot.constants.reactions["yes"])
-                    no = self.bot.get_emoji(
-                        self.bot.constants.reactions["no"]
-                    )
+                    no = self.bot.get_emoji(self.bot.constants.reactions["no"])
 
                     # Add the reactions
                     for emoji in (yes, no):
@@ -123,12 +128,16 @@ class Request(commands.Cog):
                             await msg.add_reaction(emoji)
 
                     try:
+                        # Wait for the user to confirm or deny if duplicate
                         reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=60.0)
                     except asyncio.TimeoutError:
+                        # Delete message on timeout
                         await msg.delete()
                         return
                     else:
+                        # Delete message on reaction
                         await msg.delete()
+                        # If user replies yes, link to the existing request
                         if reaction.emoji == self.bot.get_emoji(self.bot.constants.reactions["yes"]):
                             await ctx.message.delete()
 
@@ -162,10 +171,8 @@ class Request(commands.Cog):
                 try:
                     msg = await channel.send(embed=embed)
 
-                    upvote = self.bot.get_emoji(self.bot.constants.reactions["upvote"])
-                    downvote = self.bot.get_emoji(
-                        self.bot.constants.reactions["downvote"]
-                    )
+                    upvote = self.bot.get_emoji(upvote_emoji)
+                    downvote = self.bot.get_emoji(downvote_emoji)
 
                     # Add the reactions
                     for emoji in (upvote, downvote):

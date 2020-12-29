@@ -298,6 +298,8 @@ class ServerSetting(Base):
         String,
         comment="Time to mute someone if antispam is tripped. Format is same as mute, e.g. '1h', '1d', '30m', etc",
     )
+    upvote_emoji = Column(BigInteger)
+    downvote_emoji = Column(BigInteger)
 
 
 class Tags(Base):
