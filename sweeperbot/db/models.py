@@ -300,6 +300,7 @@ class ServerSetting(Base):
     )
     upvote_emoji = Column(BigInteger)
     downvote_emoji = Column(BigInteger)
+    question_emoji = Column(BigInteger)
 
 
 class Tags(Base):
@@ -418,6 +419,8 @@ class Requests(Base):
     upvotes = Column(Integer, default=0)
     # Number of downvotes
     downvotes = Column(Integer, default=0)
+    # Number of questions
+    questions = Column(Integer, default=0)
     # The text of the suggestion
     text = Column(CIText())
 

@@ -57,9 +57,11 @@ class ListRequests(commands.Cog):
                 game_title = getattr(singleRequest, "text")
                 upvotes = getattr(singleRequest, "upvotes")
                 downvotes = getattr(singleRequest, "downvotes")
+                questions = getattr(singleRequest, "questions")
                 message_id = getattr(singleRequest, "message_id")
+                
                 link = f"https://discord.com/channels/{ctx.guild.id}/{request_channel}/{message_id}"
-                content_length = len(game_title) + len(str(upvotes)) + len(str(downvotes)) + len(link) + 100
+                content_length = len(game_title) + len(str(upvotes)) + len(str(downvotes)) + len(str(questions)) + len(link) + 100
 
                 if len(embed) + content_length > 6000:
                     embed_array.append(embed)
@@ -71,7 +73,7 @@ class ListRequests(commands.Cog):
 
                 embed.add_field(
                   name=game_title,
-                  value=f"Upvotes: *{upvotes}*\nDownvotes: *{downvotes}*\n[Link]({link})",
+                  value=f"Upvotes: *{upvotes}*\nDownvotes: *{downvotes}*\nQuestions: *{questions}*\n[Link]({link})",
                   inline=False
                 )
                 

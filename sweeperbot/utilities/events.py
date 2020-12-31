@@ -1007,6 +1007,7 @@ class Events(commands.Cog):
             settings = self.bot.guild_settings.get(guild_id)
             upvote_emoji = settings.upvote_emoji or self.bot.constants.reactions["upvote"]
             downvote_emoji = settings.downvote_emoji or self.bot.constants.reactions["downvote"]
+            question_emoji = settings.question or self.bot.constants.reactions["question"]
             
             try:
                 request_channel_id = settings.request_channel
@@ -1020,17 +1021,21 @@ class Events(commands.Cog):
                 )
                 upvoted = False
                 downvoted = False
+                questioned = False
 
                 # Get the reactions
                 upvote = self.bot.get_emoji(upvote_emoji)
                 downvote = self.bot.get_emoji(downvote_emoji)
+                question = self.bot.get_emoji(question_emoji)
 
                 if emoji.id == upvote.id:
                     upvoted = True
                 elif emoji.id == downvote.id:
                     downvoted = True
+                elif emoji.id == question.id:
+                    questioned = True
 
-                if upvoted or downvoted:
+                if upvoted or downvoted or questioned:
                     self.bot.log.debug(
                         f"Request was voted on: Request mID: {message_id}"
                     )
@@ -1059,6 +1064,10 @@ class Events(commands.Cog):
                                 )
                                 self.bot.log.debug(
                                     f"Request Event: Downvote + 1. Request mID: {message_id}"
+                                )
+                            elif questioned:
+                                request_result.questions = (
+                                    models.Requests.questions + 1
                                 )
                             # Commit change to database
                             session.commit()
@@ -1111,6 +1120,7 @@ class Events(commands.Cog):
             settings = self.bot.guild_settings.get(guild_id)
             upvote_emoji = settings.upvote_emoji or self.bot.constants.reactions["upvote"]
             downvote_emoji = settings.downvote_emoji or self.bot.constants.reactions["downvote"]
+            question_emoji = settings.question_emoji or self.bot.constants.reactions["question"]
 
             try:
                 request_channel_id = settings.request_channel
@@ -1124,17 +1134,21 @@ class Events(commands.Cog):
                 )
                 upvoted = False
                 downvoted = False
+                questioned = False
 
                 # Get the reactions
                 upvote = self.bot.get_emoji(upvote_emoji)
                 downvote = self.bot.get_emoji(downvote_emoji)
+                question = self.bot.get_emoji(question_emoji)
 
                 if emoji.id == upvote.id:
                     upvoted = True
                 elif emoji.id == downvote.id:
                     downvoted = True
+                elif emoji.id == question.id:
+                    questioned = True
 
-                if upvoted or downvoted:
+                if upvoted or downvoted or questioned:
                     self.bot.log.debug(
                         f"Request was voted on: Request mID: {message_id}"
                     )
@@ -1163,6 +1177,10 @@ class Events(commands.Cog):
                                 )
                                 self.bot.log.debug(
                                     f"Request Event: Downvote - 1. Request mID: {message_id}"
+                                )
+                            elif questioned:
+                                request_result.questions = (
+                                    models.Requests.questions - 1
                                 )
                             # Commit change to database
                             session.commit()

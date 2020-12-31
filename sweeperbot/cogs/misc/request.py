@@ -39,10 +39,14 @@ class Request(commands.Cog):
             # Get channel ID's the command is allowed in
             guild = ctx.message.guild
             settings = self.bot.guild_settings.get(guild.id)
+
             upvote_emoji = settings.upvote_emoji or self.bot.constants.reactions["upvote"]
             downvote_emoji = settings.downvote_emoji or self.bot.constants.reactions["downvote"]
+            downvote_emoji = settings.question_emoji or self.bot.constants.reactions["question"]
+
             request_channel = settings.request_channel
             request_channel_allowed = settings.request_channel_allowed
+
             if request_channel_allowed is None:
                 return await ctx.send(
                     f"No requests allowed channel found. Please set one on the configuration."
@@ -173,9 +177,10 @@ class Request(commands.Cog):
 
                     upvote = self.bot.get_emoji(upvote_emoji)
                     downvote = self.bot.get_emoji(downvote_emoji)
+                    question = self.bot.get_emoji(question_emoji)
 
                     # Add the reactions
-                    for emoji in (upvote, downvote):
+                    for emoji in (upvote, downvote, question):
                         if emoji:
                             await msg.add_reaction(emoji)
                     # Now let user know it was posted - but if it's in same channel it's being posted to, no need

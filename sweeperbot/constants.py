@@ -16,8 +16,9 @@ class Constants:
         )
 
         self.reactions = {
-            "upvote": 494_136_380_440_576_011,
-            "downvote": 494_136_360_194_801_664,
+            "upvote": 494136380440576011,
+            "downvote": 494136360194801664,
+            "question": 794272398677114910,
             "spacer": 328_352_361_569_583_105,  # also referred to as 'blank'
             "sweeperbot": 361_145_141_173_682_177,
             "animated_sweeperbot": 501_214_112_504_610_816,
