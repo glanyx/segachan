@@ -30,6 +30,7 @@ class Meta(commands.Cog):
         if isinstance(error, commands.BadArgument):
             await ctx.send(error)
 
+
     @commands.command(name="help")
     async def _help(self, ctx, *, command: str = None):
         """Shows help about a command or the bot"""
@@ -55,7 +56,7 @@ class Meta(commands.Cog):
     @commands.command(hidden=True)
     async def hello(self, ctx):
         """Displays my intro message."""
-        await ctx.send("Hello! I'm a robot! Danny#0007 made me.")
+        await ctx.send("Hello! I'm a robot! Glanyx#0001 is my developer.")
 
     @commands.command()
     async def charinfo(self, ctx, *, characters: str):

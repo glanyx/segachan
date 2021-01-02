@@ -1,31 +1,31 @@
 # All the bots constants and reusable info stored here
 from discord import ActivityType
 
-__owner__ = "Mike Wohlrab aka D0cR3d#0001 (82942340309716992)"
-__botname__ = "SweeperBot"
+__owner__ = "Glanyx#0001 (224606487979360256)"
+__botname__ = "SegaChan"
 __description__ = (
-    "A discord moderation bot developed by Layer 7 Solutions (https://Layer7.Solutions). "
-    "The bot is inspired from Destiny by Bungie and used in various "
-    "other servers. A public version is available via the .invite command."
+    "A discord moderation bot maintained by Glanyx (https://github.com/glanyx/). "
+    "SegaChan is a private Discord bot for use by Sega."
 )
 
 
 class Constants:
     def __init__(self):
         self.repository_link = (
-            "https://bitbucket.org/layer7solutions/sweeperbot/src/python-rewrite/"
+            "https://github.com/glanyx/segachan/"
         )
-        self.patreon_link = "https://www.patreon.com/Layer7"
-        self.support_invite_link = "https://discord.gg/JCzdcPU"
 
         self.reactions = {
-            "upvote": 514_265_944_894_472_193,
-            "downvote": 514_265_940_817_346_604,
+            "upvote": 494136380440576011,
+            "downvote": 494136360194801664,
+            "question": 794272398677114910,
             "spacer": 328_352_361_569_583_105,  # also referred to as 'blank'
             "sweeperbot": 361_145_141_173_682_177,
             "animated_sweeperbot": 501_214_112_504_610_816,
             "checkmark": "\N{WHITE HEAVY CHECK MARK}",
             "guantlet": 443_192_427_587_567_617,
+            "yes": 507_285_695_484_919_809,
+            "no": 507_287_289_282_428_962,
         }
 
         self.sega_heros_reactions = {

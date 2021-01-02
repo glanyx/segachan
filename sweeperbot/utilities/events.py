@@ -14,6 +14,8 @@ class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    
+
     @commands.Cog.listener()
     async def on_member_join(self, member):
         session = self.bot.helpers.get_db_session()
@@ -260,7 +262,7 @@ class Events(commands.Cog):
             self.bot.log.exception(
                 f"Error processing Member Part Event. {sys.exc_info()[ 0].__name__}: {err}"
             )
-
+    
     @commands.Cog.listener()
     async def on_message(self, msg):
         # Check if it's from a DM, then ignore it since we're processing this in the mod mail module
@@ -277,6 +279,14 @@ class Events(commands.Cog):
                 return
             session = self.bot.helpers.get_db_session()
             try:
+                # Check the configured requests channel
+                settings = self.bot.guild_settings.get(msg.guild.id)
+                request_channel = settings.request_channel
+                #if (
+                #    request_channel == msg.guild.id
+                #    and not msg.content.startswith(settings.bot_prefix)
+                #):
+
                 # Check if there is a user in the database already
                 db_user = (
                     session.query(models.User)
@@ -993,85 +1003,89 @@ class Events(commands.Cog):
                 guild_id, channel_id, message_id, user_id, emoji
             )
 
-            # Get channel ID's the command suggestion command goes to
+            # Get channel ID's the command request command goes to
             settings = self.bot.guild_settings.get(guild_id)
+            upvote_emoji = settings.upvote_emoji or self.bot.constants.reactions["upvote"]
+            downvote_emoji = settings.downvote_emoji or self.bot.constants.reactions["downvote"]
+            question_emoji = settings.question or self.bot.constants.reactions["question"]
+            
             try:
-                suggestion_channel_id = settings.suggestion_channel
+                request_channel_id = settings.request_channel
             except Exception as err:
-                # If no suggestion_channel or settings returned from the DB settings then return
+                # If no request_channel or settings returned from the DB settings then return
                 return
-            # Check if the reaction is on a suggestion, and if so adjust the voting:
-            if channel_id == suggestion_channel_id:
+            # Check if the reaction is on a request, and if so adjust the voting:
+            if channel_id == request_channel_id:
                 self.bot.log.debug(
-                    f"Reaction is in the suggestion channel. Suggestion mID: {message_id}"
+                    f"Reaction is in the request channel. Request mID: {message_id}"
                 )
                 upvoted = False
                 downvoted = False
+                questioned = False
+
                 # Get the reactions
-                if guild_id == 470_889_647_833_219_072:
-                    upvote = self.bot.get_emoji(
-                        self.bot.constants.sega_heros_reactions["yes"]
-                    )
-                    downvote = self.bot.get_emoji(
-                        self.bot.constants.sega_heros_reactions["no"]
-                    )
-                else:
-                    upvote = self.bot.get_emoji(self.bot.constants.reactions["upvote"])
-                    downvote = self.bot.get_emoji(
-                        self.bot.constants.reactions["downvote"]
-                    )
+                upvote = self.bot.get_emoji(upvote_emoji)
+                downvote = self.bot.get_emoji(downvote_emoji)
+                question = self.bot.get_emoji(question_emoji)
+
                 if emoji.id == upvote.id:
                     upvoted = True
                 elif emoji.id == downvote.id:
                     downvoted = True
+                elif emoji.id == question.id:
+                    questioned = True
 
-                if upvoted or downvoted:
+                if upvoted or downvoted or questioned:
                     self.bot.log.debug(
-                        f"Suggestion was voted on: Suggestion mID: {message_id}"
+                        f"Request was voted on: Request mID: {message_id}"
                     )
                     # Get the database record
                     session = self.bot.helpers.get_db_session()
                     try:
-                        suggestion_result = (
-                            session.query(models.Suggestions).filter(
-                                models.Suggestions.message_id == message_id
+                        request_result = (
+                            session.query(models.Requests).filter(
+                                models.Requests.message_id == message_id
                             )
                         ).first()
-                        if suggestion_result:
+                        if request_result:
                             self.bot.log.debug(
-                                f"Found suggestion in the database. Suggestion mID: {message_id}"
+                                f"Found request in the database. Request mID: {message_id}"
                             )
                             if upvoted:
-                                suggestion_result.upvotes = (
-                                    models.Suggestions.upvotes + 1
+                                request_result.upvotes = (
+                                    models.Requests.upvotes + 1
                                 )
                                 self.bot.log.debug(
-                                    f"Suggestion Event: Upvote + 1. Suggestion mID: {message_id}"
+                                    f"Request Event: Upvote + 1. Request mID: {message_id}"
                                 )
                             elif downvoted:
-                                suggestion_result.downvotes = (
-                                    models.Suggestions.downvotes + 1
+                                request_result.downvotes = (
+                                    models.Requests.downvotes + 1
                                 )
                                 self.bot.log.debug(
-                                    f"Suggestion Event: Downvote + 1. Suggestion mID: {message_id}"
+                                    f"Request Event: Downvote + 1. Request mID: {message_id}"
+                                )
+                            elif questioned:
+                                request_result.questions = (
+                                    models.Requests.questions + 1
                                 )
                             # Commit change to database
                             session.commit()
                             self.bot.log.debug(
-                                f"Committed change to database. Suggestion mID: {message_id}"
+                                f"Committed change to database. Request mID: {message_id}"
                             )
                         else:
                             self.bot.log.debug(
-                                f"Suggestion NOT in the database. Suggestion mID: {message_id}"
+                                f"Request NOT in the database. Request mID: {message_id}"
                             )
                     except DBAPIError as err:
                         self.bot.log.exception(
-                            f"Error processing database query for adjusting suggestion votes. {sys.exc_info()[0].__name__}: {err}"
+                            f"Error processing database query for adjusting Request votes. {sys.exc_info()[0].__name__}: {err}"
                         )
                         session.rollback()
                     except Exception as err:
                         self.bot.log.exception(
-                            f"Unknown Error logging to database for adjusting suggestion votes. {sys.exc_info()[0].__name__}: {err}"
+                            f"Unknown Error logging to database for adjusting Request votes. {sys.exc_info()[0].__name__}: {err}"
                         )
                     finally:
                         session.close()
@@ -1102,85 +1116,89 @@ class Events(commands.Cog):
             user_id = raw_reaction_action_event.user_id
             emoji = raw_reaction_action_event.emoji
 
-            # Get channel ID's the command suggestion command goes to
+            # Get channel ID's the command request command goes to
             settings = self.bot.guild_settings.get(guild_id)
+            upvote_emoji = settings.upvote_emoji or self.bot.constants.reactions["upvote"]
+            downvote_emoji = settings.downvote_emoji or self.bot.constants.reactions["downvote"]
+            question_emoji = settings.question_emoji or self.bot.constants.reactions["question"]
+
             try:
-                suggestion_channel_id = settings.suggestion_channel
+                request_channel_id = settings.request_channel
             except Exception as err:
-                # If no suggestion_channel or settings returned from the DB settings then return
+                # If no request_channel or settings returned from the DB settings then return
                 return
-            # Check if the reaction is on a suggestion, and if so adjust the voting:
-            if channel_id == suggestion_channel_id:
+            # Check if the reaction is on a request, and if so adjust the voting:
+            if channel_id == request_channel_id:
                 self.bot.log.debug(
-                    f"Reaction is in the suggestion channel. Suggestion mID: {message_id}"
+                    f"Reaction is in the request channel. Request mID: {message_id}"
                 )
                 upvoted = False
                 downvoted = False
+                questioned = False
+
                 # Get the reactions
-                if guild_id == 470_889_647_833_219_072:
-                    upvote = self.bot.get_emoji(
-                        self.bot.constants.sega_heros_reactions["yes"]
-                    )
-                    downvote = self.bot.get_emoji(
-                        self.bot.constants.sega_heros_reactions["no"]
-                    )
-                else:
-                    upvote = self.bot.get_emoji(self.bot.constants.reactions["upvote"])
-                    downvote = self.bot.get_emoji(
-                        self.bot.constants.reactions["downvote"]
-                    )
+                upvote = self.bot.get_emoji(upvote_emoji)
+                downvote = self.bot.get_emoji(downvote_emoji)
+                question = self.bot.get_emoji(question_emoji)
+
                 if emoji.id == upvote.id:
                     upvoted = True
                 elif emoji.id == downvote.id:
                     downvoted = True
+                elif emoji.id == question.id:
+                    questioned = True
 
-                if upvoted or downvoted:
+                if upvoted or downvoted or questioned:
                     self.bot.log.debug(
-                        f"Suggestion was voted on: Suggestion mID: {message_id}"
+                        f"Request was voted on: Request mID: {message_id}"
                     )
                     # Get the database record
                     session = self.bot.helpers.get_db_session()
                     try:
-                        suggestion_result = (
-                            session.query(models.Suggestions).filter(
-                                models.Suggestions.message_id == message_id
+                        request_result = (
+                            session.query(models.Requests).filter(
+                                models.Requests.message_id == message_id
                             )
                         ).first()
-                        if suggestion_result:
+                        if request_result:
                             self.bot.log.debug(
-                                f"Found suggestion in the database. Suggestion mID: {message_id}"
+                                f"Found request in the database. Request mID: {message_id}"
                             )
                             if upvoted:
-                                suggestion_result.upvotes = (
-                                    models.Suggestions.upvotes - 1
+                                request_result.upvotes = (
+                                    models.Requests.upvotes - 1
                                 )
                                 self.bot.log.debug(
-                                    f"Suggestion Event: Upvote - 1. Suggestion mID: {message_id}"
+                                    f"Request Event: Upvote - 1. Request mID: {message_id}"
                                 )
                             elif downvoted:
-                                suggestion_result.downvotes = (
-                                    models.Suggestions.downvotes - 1
+                                request_result.downvotes = (
+                                    models.Requests.downvotes - 1
                                 )
                                 self.bot.log.debug(
-                                    f"Suggestion Event: Downvote - 1. Suggestion mID: {message_id}"
+                                    f"Request Event: Downvote - 1. Request mID: {message_id}"
+                                )
+                            elif questioned:
+                                request_result.questions = (
+                                    models.Requests.questions - 1
                                 )
                             # Commit change to database
                             session.commit()
                             self.bot.log.debug(
-                                f"Committed change to database. Suggestion mID: {message_id}"
+                                f"Committed change to database. Request mID: {message_id}"
                             )
                         else:
                             self.bot.log.debug(
-                                f"Suggestion NOT in the database. Suggestion mID: {message_id}"
+                                f"Request NOT in the database. Request mID: {message_id}"
                             )
                     except DBAPIError as err:
                         self.bot.log.exception(
-                            f"Error processing database query for adjusting suggestion votes. {sys.exc_info()[0].__name__}: {err}"
+                            f"Error processing database query for adjusting request votes. {sys.exc_info()[0].__name__}: {err}"
                         )
                         session.rollback()
                     except Exception as err:
                         self.bot.log.exception(
-                            f"Unknown Error logging to database for adjusting suggestion votes. {sys.exc_info()[0].__name__}: {err}"
+                            f"Unknown Error logging to database for adjusting request votes. {sys.exc_info()[0].__name__}: {err}"
                         )
                     finally:
                         session.close()

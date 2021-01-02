@@ -19,6 +19,8 @@ from sweeperbot.utilities.helpers import Helpers
 from sweeperbot.utilities.role_assignment import RoleAssignment
 from sweeperbot.utilities.tasks import Tasks
 
+from sweeperbot.cogs.utils import checks
+
 # from sweeperbot.cogs.utils.imgur_api import ImgurAPI
 
 curdir = join(abspath(dirname(__file__)))
@@ -52,10 +54,10 @@ initial_extensions = (
     "cogs.modtools.server",
     "cogs.modtools.rra_role_assignment",
     "cogs.modtools.blacklist",
+    "cogs.modtools.list_requests",
     # Misc commands
     "cogs.misc.ping",
     "cogs.misc.tags",
-    "cogs.misc.suggestion",
     "cogs.misc.request",
     "cogs.misc.reminder",
     "cogs.misc.info",
@@ -180,6 +182,26 @@ class Bot(commands.AutoShardedBot):
 
     def get_guild_prefixes(self, msg, *, local_inject=_prefix_callable):
         return local_inject(self, msg)
+
+    # little hack to allow only port requests in specified channel
+    async def on_message(self, message):
+        guild = message.guild
+        settings = self.guild_settings.get(guild.id)
+        request_channel = settings.request_channel
+        if message.channel.id == request_channel:
+            if (
+                message.content[1:].startswith('requestport ')
+                or message.content[1:].startswith('request ')
+                or message.content[1:].startswith('rq ')
+                or message.content[1:].startswith('rqp ')
+                or message.author == self.user
+            ):
+                await self.process_commands(message)
+            else:
+                await message.delete()
+                return
+        else:
+            await self.process_commands(message)
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.NoPrivateMessage):

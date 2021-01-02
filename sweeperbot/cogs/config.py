@@ -190,6 +190,7 @@ class Config(commands.Cog):
         return row is not None
 
     async def __global_check_once(self, ctx):
+
         if ctx.guild is None:
             return True
 

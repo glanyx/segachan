@@ -274,8 +274,8 @@ class ServerSetting(Base):
     bot_id = Column(BigInteger)
     admin_role = Column(BigInteger)
     mod_role = Column(BigInteger)
-    suggestion_channel = Column(BigInteger)
-    suggestion_channel_allowed = Column(ARRAY(BigInteger))
+    request_channel = Column(BigInteger)
+    request_channel_allowed = Column(ARRAY(BigInteger))
     activity_status = Column(ARRAY(String))
     activity_status_enabled = Column(Boolean, default=False)
     enabled = Column(
@@ -298,6 +298,9 @@ class ServerSetting(Base):
         String,
         comment="Time to mute someone if antispam is tripped. Format is same as mute, e.g. '1h', '1d', '30m', etc",
     )
+    upvote_emoji = Column(BigInteger)
+    downvote_emoji = Column(BigInteger)
+    question_emoji = Column(BigInteger)
 
 
 class Tags(Base):
@@ -401,25 +404,6 @@ class AntiSpamServerSettings(Base):
     )
 
 
-class Suggestions(Base):
-    """Records the suggestions use make, and number of votes"""
-
-    # Guild the suggestion is related to
-    server_id = Column(Integer, ForeignKey("server.id"))
-    server = relationship(Server, backref=backref("suggestions", uselist=True))
-    # User that made the suggestion
-    user_id = Column(Integer, ForeignKey("user.id"))
-    user = relationship(User, backref=backref("suggestions", uselist=True))
-    # ID of the message
-    message_id = Column(BigInteger, unique=True)
-    # Number of upvotes
-    upvotes = Column(Integer, default=0)
-    # Number of downvotes
-    downvotes = Column(Integer, default=0)
-    # The text of the suggestion
-    text = Column(CIText())
-
-
 class Requests(Base):
     """Records the request and number of votes"""
 
@@ -435,6 +419,8 @@ class Requests(Base):
     upvotes = Column(Integer, default=0)
     # Number of downvotes
     downvotes = Column(Integer, default=0)
+    # Number of questions
+    questions = Column(Integer, default=0)
     # The text of the suggestion
     text = Column(CIText())
 
