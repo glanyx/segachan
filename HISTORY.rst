@@ -2,7 +2,7 @@
 History
 =======
 
-1.1.0(2020-12-28)
+1.3.1(2020-12-28)
 =================
 
 + Reworking suggestion to request

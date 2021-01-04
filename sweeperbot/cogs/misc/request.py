@@ -106,7 +106,7 @@ class Request(commands.Cog):
                     # Check function for reactions (yes / no)
                     def check(reaction, user):
                         return user == ctx.author and (
-                            reaction.emoji.id == self.bot.get_emoji(self.bot.constants.reactions["yes"])
+                            reaction.emoji == self.bot.get_emoji(self.bot.constants.reactions["yes"])
                             or reaction.emoji == self.bot.get_emoji(self.bot.constants.reactions["no"])
                         )
 
@@ -137,6 +137,7 @@ class Request(commands.Cog):
                     except asyncio.TimeoutError:
                         # Delete message on timeout
                         await msg.delete()
+                        await ctx.message.delete()
                         return
                     else:
                         # Delete message on reaction
