@@ -1,5 +1,6 @@
 import asyncio
 import sys
+import random
 
 import discord
 from sqlalchemy.exc import DBAPIError
@@ -115,22 +116,10 @@ class Tasks:
 
                     # If there is at least one activity status text added
                     if len(activity_status) > 0:
-                        # Get the max index id
-                        as_max_idx = len(activity_status) - 1
-                        # Get what index is last used
-                        try:
-                            as_last_idx = self.bot.activity_index[guild.id]
-                        except KeyError:
-                            # If nothing set, usually due to bot restart, set to one below 0, indexes start at 0
-                            as_last_idx = -1
-                        # If incrementing the index goes above max, then set index to 0
-                        if as_last_idx + 1 > as_max_idx:
-                            as_idx = 0
-                        # Otherwise increase the index
-                        else:
-                            as_idx = as_last_idx + 1
-                        # Get the activity status text
-                        activity_text = str(activity_status[as_idx])
+
+                        # Get a random activity status text
+                        activity_text = str(random.choice(activity_status))
+
                         # If length of stripping the text is blank, skip trying to set the status, discord would reject
                         if len(activity_text.strip()) == 0:
                             print(f"{activity_text.strip()}")
@@ -143,8 +132,6 @@ class Tasks:
                             self.bot.log.debug(
                                 f"Tasks: Set Activity Text to: '{activity_text}' from Guild: {guild.id}"
                             )
-                            # Update the index
-                            self.bot.activity_index[guild.id] = as_idx
                         except Exception as err:
                             self.bot.log.exception(
                                 f"Tasks: Failed to set presence info. {sys.exc_info()[0].__name__}: {err}"
@@ -154,8 +141,8 @@ class Tasks:
                     self.bot.log.exception(
                         f"Tasks: Generic Error setting presence info. {sys.exc_info()[0].__name__}: {err}"
                     )
-            # Time in seconds. Currently 20 minutes
-            await asyncio.sleep(60 * 20)
+            # Time in seconds. Currently 10 minutes
+            await asyncio.sleep(60 * 10)
 
     async def load_antispam_services_from_db(self):
         while True:

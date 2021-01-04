@@ -10,7 +10,7 @@ SegaChan is a Discord Bot forked from Sweeper Bot. This is a privately used bot 
 - Logging of deleted messages, reactions, voice activity, member joins/parts, and name changes.
 - AntiSpam features including auto muting those sending too many messages too quickly.
 - Reaction based role assignment.
-- Suggestions creation with voting reactions.
+- Request creation with voting reactions.
 - Mod Mail which allows users to send the bot a message and have it relayed to our mods and allows our mods to respond.
 
 Original Version
