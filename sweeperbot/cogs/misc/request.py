@@ -42,7 +42,7 @@ class Request(commands.Cog):
 
             upvote_emoji = settings.upvote_emoji or self.bot.constants.reactions["upvote"]
             downvote_emoji = settings.downvote_emoji or self.bot.constants.reactions["downvote"]
-            downvote_emoji = settings.question_emoji or self.bot.constants.reactions["question"]
+            question_emoji = settings.question_emoji or self.bot.constants.reactions["question"]
 
             request_channel = settings.request_channel
             request_channel_allowed = settings.request_channel_allowed
