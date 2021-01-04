@@ -1007,7 +1007,7 @@ class Events(commands.Cog):
             settings = self.bot.guild_settings.get(guild_id)
             upvote_emoji = settings.upvote_emoji or self.bot.constants.reactions["upvote"]
             downvote_emoji = settings.downvote_emoji or self.bot.constants.reactions["downvote"]
-            question_emoji = settings.question or self.bot.constants.reactions["question"]
+            question_emoji = settings.question_emoji or self.bot.constants.reactions["question"]
             
             try:
                 request_channel_id = settings.request_channel
