@@ -301,6 +301,8 @@ class ServerSetting(Base):
     upvote_emoji = Column(BigInteger)
     downvote_emoji = Column(BigInteger)
     question_emoji = Column(BigInteger)
+    allow_downvotes = Column(Boolean, default=True)
+    allow_questions = Column(Boolean, default=False)
 
 
 class Tags(Base):
@@ -410,7 +412,7 @@ class Requests(Base):
     # Guilde the request is related to
     server_id = Column(Integer, ForeignKey("server.id"))
     server = relationship(Server, backref=backref("requests", uselist=True))
-    # User that made the suggestion
+    # User that made the request
     user_id = Column(Integer, ForeignKey("user.id"))
     user = relationship(User, backref=backref("requests", uselist=True))
     # ID of the message
@@ -421,7 +423,7 @@ class Requests(Base):
     downvotes = Column(Integer, default=0)
     # Number of questions
     questions = Column(Integer, default=0)
-    # The text of the suggestion
+    # The text of the request
     text = Column(CIText())
 
 

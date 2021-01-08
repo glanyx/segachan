@@ -495,25 +495,25 @@ class Config(commands.Cog):
         finally:
             session.close()
 
-    # Suggestion Configuration
+    # Request Configuration
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @config.group(invoke_without_command=False)
-    async def suggestion(self, ctx):
-        """Base for the Suggestion configuration. See `suggestion channel` and `suggestion commands`"""
+    async def request(self, ctx):
+        """Base for the Request configuration. See `request channel` and `request commands`"""
         pass
 
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    @suggestion.command(aliases=["feed", "board", "channel"])
-    async def suggestion_feed_channel(self, ctx, *, channel: discord.TextChannel):
-        """Sets the suggestion channel which is where suggestions get sent to.
+    @request.command(aliases=["feed", "board", "channel"])
+    async def request_feed_channel(self, ctx, *, channel: discord.TextChannel):
+        """Sets the request channel which is where requests get sent to.
 
         Example:
 
-        config suggestion feed #channel
-        config suggestion board #channel
-        config suggestion channel #channel
+        config request feed #channel
+        config request board #channel
+        config request channel #channel
 
         Requires Permission: Manage Guild
 
@@ -535,7 +535,7 @@ class Config(commands.Cog):
             settings = await self.bot.helpers.get_one_guild_settings(
                 session, ctx.message.guild.id
             )
-            settings.suggestion_channel = channel.id
+            settings.request_channel = channel.id
             session.commit()
 
             # Update local cache
@@ -546,7 +546,7 @@ class Config(commands.Cog):
             )
 
             return await ctx.send(
-                f"Successfully set the channel where suggestions are sent to: {channel.mention}."
+                f"Successfully set the channel where requests are sent to: {channel.mention}."
             )
 
         except discord.HTTPException as err:
@@ -576,13 +576,13 @@ class Config(commands.Cog):
 
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    @suggestion.command(aliases=["commands"])
-    async def suggestion_channel_allowed(self, ctx, *, channel: discord.TextChannel):
-        """Sets the channel that users are allowed to use the suggestion command in.
+    @request.command(aliases=["commands"])
+    async def request_channel_allowed(self, ctx, *, channel: discord.TextChannel):
+        """Sets the channel that users are allowed to use the request command in.
 
         Example:
 
-        config suggestion commands #channel
+        config request commands #channel
 
         Requires Permission: Manage Guild
 
@@ -604,7 +604,7 @@ class Config(commands.Cog):
             settings = await self.bot.helpers.get_one_guild_settings(
                 session, ctx.message.guild.id
             )
-            settings.suggestion_channel_allowed = [channel.id]
+            settings.request_channel_allowed = [channel.id]
             session.commit()
 
             # Update local cache
@@ -615,7 +615,7 @@ class Config(commands.Cog):
             )
 
             return await ctx.send(
-                f"Successfully set the channel users are allowed to use the suggestion command in to: {channel.mention}."
+                f"Successfully set the channel users are allowed to use the request command in to: {channel.mention}."
             )
 
         except discord.HTTPException as err:

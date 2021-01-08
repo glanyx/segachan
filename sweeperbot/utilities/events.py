@@ -1008,6 +1008,9 @@ class Events(commands.Cog):
             upvote_emoji = settings.upvote_emoji or self.bot.constants.reactions["upvote"]
             downvote_emoji = settings.downvote_emoji or self.bot.constants.reactions["downvote"]
             question_emoji = settings.question_emoji or self.bot.constants.reactions["question"]
+
+            downvotes_allowed = settings.allow_downvotes
+            questions_allowed = settings.allow_questions
             
             try:
                 request_channel_id = settings.request_channel
@@ -1030,9 +1033,15 @@ class Events(commands.Cog):
 
                 if emoji.id == upvote.id:
                     upvoted = True
-                elif emoji.id == downvote.id:
+                elif (
+                  emoji.id == downvote.id
+                  and downvotes_allowed
+                ):
                     downvoted = True
-                elif emoji.id == question.id:
+                elif (
+                  emoji.id == question.id
+                  and questions_allowed
+                ):
                     questioned = True
 
                 if upvoted or downvoted or questioned:
