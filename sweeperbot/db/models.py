@@ -276,6 +276,7 @@ class ServerSetting(Base):
     mod_role = Column(BigInteger)
     request_channel = Column(BigInteger)
     request_channel_allowed = Column(ARRAY(BigInteger))
+    request_alert_channel = Column(BigInteger)
     activity_status = Column(ARRAY(String))
     activity_status_enabled = Column(Boolean, default=False)
     enabled = Column(

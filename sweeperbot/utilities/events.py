@@ -1014,6 +1014,7 @@ class Events(commands.Cog):
             
             try:
                 request_channel_id = settings.request_channel
+                feedback_channel_id = settings.request_alert_channel
             except Exception as err:
                 # If no request_channel or settings returned from the DB settings then return
                 return
@@ -1075,6 +1076,16 @@ class Events(commands.Cog):
                                     f"Request Event: Downvote + 1. Request mID: {message_id}"
                                 )
                             elif questioned:
+                                feedback_channel = self.bot.get_guild(guild_id).get_channel(feedback_channel_id)
+
+                                feedback_embed = discord.Embed(
+                                  color=0x14738E,
+                                  title="A port request was questioned!",
+                                  description=f"User <@{user_id}> ({user_id}) questioned a port request for `{request_result.text}`.\n[Link](https://discord.com/channels/{guild_id}/{channel_id}/{message_id})",
+                                  timestamp=datetime.utcnow(),
+                                )
+
+                                await feedback_channel.send(embed=feedback_embed)
                                 request_result.questions = (
                                     models.Requests.questions + 1
                                 )
@@ -1131,6 +1142,9 @@ class Events(commands.Cog):
             downvote_emoji = settings.downvote_emoji or self.bot.constants.reactions["downvote"]
             question_emoji = settings.question_emoji or self.bot.constants.reactions["question"]
 
+            downvotes_allowed = settings.allow_downvotes
+            questions_allowed = settings.allow_questions
+            
             try:
                 request_channel_id = settings.request_channel
             except Exception as err:
@@ -1152,9 +1166,15 @@ class Events(commands.Cog):
 
                 if emoji.id == upvote.id:
                     upvoted = True
-                elif emoji.id == downvote.id:
+                elif (
+                  emoji.id == downvote.id
+                  and downvotes_allowed
+                ):
                     downvoted = True
-                elif emoji.id == question.id:
+                elif (
+                  emoji.id == question.id
+                  and questions_allowed
+                ):
                     questioned = True
 
                 if upvoted or downvoted or questioned:
