@@ -43,6 +43,8 @@ class Request(commands.Cog):
             upvote_emoji = settings.upvote_emoji or self.bot.constants.reactions["upvote"]
             downvote_emoji = settings.downvote_emoji or self.bot.constants.reactions["downvote"]
             question_emoji = settings.question_emoji or self.bot.constants.reactions["question"]
+            downvotes_allowed = settings.allow_downvotes
+            questions_allowed = settings.allow_questions
 
             request_channel = settings.request_channel
             request_channel_allowed = settings.request_channel_allowed
@@ -89,14 +91,38 @@ class Request(commands.Cog):
             # Check if request exists
             guild_requests = (
                 session.query(models.Requests)
-                .filter(models.Server.discord_id == ctx.guild.id)
+                .join(models.Server, models.Server.id == models.Requests.server_id)
+                .filter(models.Server.discord_id == ctx.message.guild.id)
                 .all()
             )
+
+            # Check for direct duplicates
+            if request_body[:1900].lower() in [singleRequest.text.lower() for singleRequest in guild_requests]:
+                for singleRequest in guild_requests:
+                    title = getattr(singleRequest, "text")
+
+                    if request_body[:1900].lower() == title.lower():
+
+                        dupe_link = getattr(singleRequest, "message_id")
+                        await ctx.message.delete()
+
+                        dupe_embed = discord.Embed(
+                            color=0x00CC00,
+                            title="Found it!",
+                            description=f"It looks like a request for this title already exists! You can view the existing request [here](https://discord.com/channels/{ctx.guild.id}/{ctx.channel.id}/{dupe_link}).\nRemember to upvote it!",
+                            timestamp=datetime.utcnow(),
+                        ).set_footer(
+                            text="This message will be removed in 15 seconds."
+                        )
+
+                        await (await ctx.channel.send(embed=dupe_embed)).delete(delay=15)
+                        return
 
             # Loop through existing requests
             for singleRequest in guild_requests:
                 game_title = getattr(singleRequest, "text")
                 message_link = getattr(singleRequest, "message_id")
+
                 # Check for substrings in the text
                 if (
                     request_body[:1900].lower() in game_title.lower()
@@ -152,10 +178,10 @@ class Request(commands.Cog):
                                 description=f"Great! You can view the existing request [here](https://discord.com/channels/{ctx.guild.id}/{ctx.channel.id}/{message_link}).\nRemember to upvote it!",
                                 timestamp=datetime.utcnow(),
                             ).set_footer(
-                                text="This message will be removed in 10 seconds."
+                                text="This message will be removed in 15 seconds."
                             )
 
-                            await (await ctx.channel.send(embed=existing_embed)).delete(delay=10)
+                            await (await ctx.channel.send(embed=existing_embed)).delete(delay=15)
                             return
                       
 
@@ -177,8 +203,8 @@ class Request(commands.Cog):
                     msg = await channel.send(embed=embed)
 
                     upvote = self.bot.get_emoji(upvote_emoji)
-                    downvote = self.bot.get_emoji(downvote_emoji)
-                    question = self.bot.get_emoji(question_emoji)
+                    downvote = self.bot.get_emoji(downvote_emoji) if downvotes_allowed else None
+                    question = self.bot.get_emoji(question_emoji) if questions_allowed else None
 
                     # Add the reactions
                     for emoji in (upvote, downvote, question):
@@ -192,9 +218,10 @@ class Request(commands.Cog):
                         except discord.errors.Forbidden:
                             pass
                     else:
-                        await ctx.send(
+                        await ctx.message.delete()
+                        await (await ctx.send(
                             f"Thank you for your request, it has now been posted and is available in {channel.mention}"
-                        )
+                        )).delete(delay=15)
                     # Now let's log it to the database
                     try:
                         # Check if there is a user in the database already

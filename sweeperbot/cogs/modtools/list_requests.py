@@ -31,11 +31,15 @@ class ListRequests(commands.Cog):
         try:
             guild = ctx.message.guild
             settings = self.bot.guild_settings.get(guild.id)
+
             request_channel = settings.request_channel
+            downvotes_allowed = settings.allow_downvotes
+            questions_allowed = settings.allow_questions
             
             guild_requests = (
                 session.query(models.Requests)
-                .filter(models.Server.discord_id == ctx.guild.id)
+                .join(models.Server, models.Server.id == models.Requests.server_id)
+                .filter(models.Server.discord_id == ctx.message.guild.id)
                 .order_by(models.Requests.upvotes.desc())
                 .order_by(models.Requests.downvotes.asc())
                 .order_by(models.Requests.text.asc())
@@ -71,9 +75,13 @@ class ListRequests(commands.Cog):
                         timestamp=datetime.utcnow()
                     )
 
+                field_string = f"Upvotes: *{upvotes}*"
+                field_string += f"\nDownvotes: *{downvotes}*" if downvotes_allowed else ""
+                field_string += f"\nQuestions: *{questions}*" if questions_allowed else ""
+
                 embed.add_field(
                   name=game_title,
-                  value=f"Upvotes: *{upvotes}*\nDownvotes: *{downvotes}*\nQuestions: *{questions}*\n[Link]({link})",
+                  value=f"{field_string}\n[Link]({link})",
                   inline=False
                 )
                 
