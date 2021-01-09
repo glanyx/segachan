@@ -185,6 +185,9 @@ class Bot(commands.AutoShardedBot):
 
     # little hack to allow only port requests in specified channel
     async def on_message(self, message):
+        if self.user == message.author:
+            return
+
         guild = message.guild
         if guild:
           settings = self.guild_settings.get(guild.id)
