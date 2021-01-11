@@ -40,6 +40,7 @@ class ListRequests(commands.Cog):
                 session.query(models.Requests)
                 .join(models.Server, models.Server.id == models.Requests.server_id)
                 .filter(models.Server.discord_id == ctx.message.guild.id)
+                .filter(models.Requests.status == models.RequestStatus.open)
                 .order_by(models.Requests.upvotes.desc())
                 .order_by(models.Requests.downvotes.asc())
                 .order_by(models.Requests.text.asc())

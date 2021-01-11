@@ -294,6 +294,5 @@ class Request(commands.Cog):
                 f"Error processing {ctx.command}. Error has already been reported to my developers."
             )
 
-
 def setup(bot):
     bot.add_cog(Request(bot))
