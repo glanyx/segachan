@@ -93,6 +93,7 @@ class Request(commands.Cog):
                 session.query(models.Requests)
                 .join(models.Server, models.Server.id == models.Requests.server_id)
                 .filter(models.Server.discord_id == ctx.message.guild.id)
+                .filter(models.Requests.status == models.RequestStatus.open)
                 .all()
             )
 
