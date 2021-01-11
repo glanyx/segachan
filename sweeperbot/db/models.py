@@ -18,6 +18,7 @@ from sqlalchemy.ext.declarative import declared_attr, declarative_base
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import UniqueConstraint, Index
 
+from enum import Enum
 
 class SweeperBase(object):
     """This class provides the defaults for each class inheriting it."""
@@ -33,7 +34,6 @@ class SweeperBase(object):
 
 
 Base = declarative_base(cls=SweeperBase)
-
 
 # Many-to-many relationships
 clubbotrels = Table(
@@ -406,6 +406,9 @@ class AntiSpamServerSettings(Base):
         comment="Any integer value associated. Such as number of mentions allowed, quick message rate limit (messages per time period), etc.",
     )
 
+class RequestStatus(Enum):
+    open = 'open',
+    closed = 'closed',
 
 class Requests(Base):
     """Records the request and number of votes"""
@@ -426,6 +429,8 @@ class Requests(Base):
     questions = Column(Integer, default=0)
     # The text of the request
     text = Column(CIText())
+    # Status of the request
+    status = Column(sqlalchemy.Enum(RequestStatus), default=RequestStatus.open)
 
 
 class Reminder(Base):
