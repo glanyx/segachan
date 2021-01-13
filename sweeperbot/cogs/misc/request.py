@@ -13,7 +13,7 @@ class Request(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=["requestport", "rq", "rqp"])
+    @commands.command(aliases=["portrequest", "rq", "prq"])
     @commands.has_permissions(send_messages=True)
     @commands.guild_only()
     async def request(self, ctx, *, request_body):
@@ -195,7 +195,7 @@ class Request(commands.Cog):
             )
 
             embed.set_footer(
-                text=f"Usage: '{ctx.prefix}request [your game]' in {request_channel_allowed_clean}"
+                text=f"Usage: '{ctx.prefix}request Game Title (Release Date)'"
             )
 
             channel = ctx.message.guild.get_channel(request_channel)
