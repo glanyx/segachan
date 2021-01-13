@@ -29,6 +29,10 @@ class ListRequests(commands.Cog):
         session = self.bot.helpers.get_db_session()
 
         try:
+            self.bot.log.info(
+                f"CMD {ctx.invoked_with} called by {ctx.message.author} ({ctx.message.author.id})"
+            )
+            
             guild = ctx.message.guild
             settings = self.bot.guild_settings.get(guild.id)
 

@@ -195,10 +195,10 @@ class Bot(commands.AutoShardedBot):
           request_channel = settings.request_channel
           if message.channel.id == request_channel:
               if (
-                  message.content[1:].startswith('requestport ')
+                  message.content[1:].startswith('portrequest ')
                   or message.content[1:].startswith('request ')
                   or message.content[1:].startswith('rq ')
-                  or message.content[1:].startswith('rqp ')
+                  or message.content[1:].startswith('prq ')
                   or message.author == self.user
               ):
                   await self.process_commands(message)
