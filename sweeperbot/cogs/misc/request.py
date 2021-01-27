@@ -1,5 +1,6 @@
 import asyncio
 import sys
+import re
 from datetime import datetime
 
 import discord
@@ -126,8 +127,8 @@ class Request(commands.Cog):
 
                 # Check for substrings in the text
                 if (
-                    request_body[:1900].lower() in game_title.lower()
-                    or game_title.lower() in request_body[:1900].lower()
+                    re.sub('[-!$%^&*()_+|~=`{}\[\]:\";\'<>?,.\/\s+]', '', request_body[:1900].lower()) in re.sub('[-!$%^&*()_+|~=`{}\[\]:\";\'<>?,.\/\s+]', '', game_title.lower())
+                    or re.sub('[-!$%^&*()_+|~=`{}\[\]:\";\'<>?,.\/\s+]', '', game_title.lower()) in re.sub('[-!$%^&*()_+|~=`{}\[\]:\";\'<>?,.\/\s+]', '', request_body[:1900].lower())
                 ):
                     
                     # Check function for reactions (yes / no)
