@@ -194,12 +194,14 @@ class Bot(commands.AutoShardedBot):
           settings = self.guild_settings.get(guild.id)
           request_channel = settings.request_channel
           if message.channel.id == request_channel:
+              perms = message.channel.permissions_for(message.author)
               if (
                   message.content[1:].startswith('portrequest ')
                   or message.content[1:].startswith('request ')
                   or message.content[1:].startswith('rq ')
                   or message.content[1:].startswith('prq ')
                   or message.author == self.user
+                  or 'manage_messages' in dir(perms)
               ):
                   await self.process_commands(message)
               else:
