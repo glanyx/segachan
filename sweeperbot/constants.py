@@ -62,7 +62,7 @@ class Constants:
 
         self.antispam = {
             "twitch": "abc",
-            "discord_invites": r"discord(?:app\.com|\.gg|\.me)\/(?:invite\/)?(?![a-zA-Z0-9\-]+\/\w)(?:[a-zA-Z0-9\-]+)",
+            "discord_invites": r"discord(?:app|\.com|\.gg|\.me)\/(?:invite\/)?(?![a-zA-Z0-9\-]+\/\w)(?:[a-zA-Z0-9\-]+)",
             "twitter": r"twitter\.com(\\|\/)\S*",
             "mixer": r"mixer\.com(\\|\/)\S*",
             "youtube": r"youtube\.com(\\|\/)\S*",
