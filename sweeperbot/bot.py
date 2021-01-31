@@ -200,8 +200,7 @@ class Bot(commands.AutoShardedBot):
                   or message.content[1:].startswith('request ')
                   or message.content[1:].startswith('rq ')
                   or message.content[1:].startswith('prq ')
-                  or message.author == self.user
-                  or 'manage_messages' in dir(perms)
+                  or getattr(perms, 'manage_messages')
               ):
                   await self.process_commands(message)
               else:
