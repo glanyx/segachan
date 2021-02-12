@@ -14,9 +14,9 @@ class Request(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=["portrequest", "rq", "prq"])
     @commands.has_permissions(send_messages=True)
     @commands.guild_only()
+    @commands.group(aliases=["portrequest", "rq", "prq", "sg", "suggestion"], invoke_without_command=True)
     async def request(self, ctx, *, request_body):
         """Takes input as a request and reposts it in a dedicated channel and provides voting reactions to show interest. Logs to database for record keeping. Detects duplication.
 
@@ -29,6 +29,7 @@ class Request(commands.Cog):
             self.bot.log.info(
                 f"CMD {ctx.invoked_with} called by {ctx.message.author} ({ctx.message.author.id})"
             )
+
             # Check if user is blacklisted, if so, ignore.
             if await self.bot.helpers.check_if_blacklisted(
                 ctx.message.author.id, ctx.message.guild.id
@@ -40,6 +41,12 @@ class Request(commands.Cog):
             # Get channel ID's the command is allowed in
             guild = ctx.message.guild
             settings = self.bot.guild_settings.get(guild.id)
+
+            if settings.request_type == models.RequestType.suggestion:
+                footer = f"Usage: '{ctx.prefix}suggestion [your suggestion]"
+            else:
+                footer = f"Usage: '{ctx.prefix}request Game Title (Release Date)'"
+
 
             upvote_emoji = settings.upvote_emoji or self.bot.constants.reactions["upvote"]
             downvote_emoji = settings.downvote_emoji or self.bot.constants.reactions["downvote"]
@@ -196,7 +203,7 @@ class Request(commands.Cog):
             )
 
             embed.set_footer(
-                text=f"Usage: '{ctx.prefix}request Game Title (Release Date)'"
+                text=f"{footer}"
             )
 
             channel = ctx.message.guild.get_channel(request_channel)
@@ -295,6 +302,99 @@ class Request(commands.Cog):
             await ctx.send(
                 f"Error processing {ctx.command}. Error has already been reported to my developers."
             )
+
+    @commands.has_permissions(manage_messages=True)
+    @commands.guild_only()
+    @request.command(aliases=["e", "E"])
+    async def edit(self, ctx, message_id: str, *, request_text: str):
+        """Edits a request.
+
+        Example:
+
+        request edit requestID request
+
+        Requires Permission: Manage Messages
+
+        Parameters
+        ----------- 
+        ctx: context
+            The context message involved.
+        message_id: str
+            The message id for the request to edit.
+        request_text: str
+            The new request text.
+        """
+
+        if not message_id:
+            ctx.send("Please enter a Message ID as the argument for this command.")
+            return
+
+        session = self.bot.helpers.get_db_session()
+
+        try:
+            self.bot.log.info(
+                f"CMD {ctx.invoked_with} called by {ctx.message.author} ({ctx.message.author.id})"
+            )
+            
+            guild = ctx.message.guild
+            settings = self.bot.guild_settings.get(guild.id)
+            request_channel = settings.request_channel
+
+            if request_channel is None:
+                  return await ctx.send(
+                    f"No requests channel found. Please set one on the configuration."
+                )
+
+            channel = guild.get_channel(request_channel)
+            
+            found_request = (
+                session.query(models.Requests)
+                .join(models.Server, models.Server.id == models.Requests.server_id)
+                .filter(models.Server.discord_id == guild.id)
+                .filter(models.Requests.message_id == message_id)
+                .first()
+            )
+
+            if not found_request:
+                await ctx.send("Unable to find a Request by the specified Message ID.")
+                return
+
+            found_request.text = request_text
+            session.add(found_request)
+            session.commit()
+
+            message = await channel.fetch_message(message_id)
+            embed = message.embeds[0]
+            embed.description = request_text
+            await message.edit(embed=embed)
+
+            await ctx.message.delete()
+            await ctx.send(f"Successfully edited the request to `{found_request.text}`!")
+
+        except discord.HTTPException as err:
+            self.bot.log.error(
+                f"Discord HTTP Error responding to {ctx.command} request via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        except DBAPIError as err:
+            self.bot.log.exception(
+                f"Error closing request for Message ID: ({message_id}). {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+            session.rollback()
+        except Exception as err:
+            self.bot.log.exception(
+                f"Error responding to {ctx.command} via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        finally:
+            session.close()
 
 def setup(bot):
     bot.add_cog(Request(bot))

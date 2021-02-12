@@ -643,6 +643,286 @@ class Config(commands.Cog):
         finally:
             session.close()
 
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    @request.command(aliases=["alert", "alerts"])
+    async def request_alert_channel(self, ctx, *, channel: discord.TextChannel):
+        """Sets the channel where to send alerts to.
+
+        Example:
+
+        config request alert #channel
+        config request alerts #channel
+
+        Requires Permission: Manage Guild
+
+        Parameters
+        -----------
+        ctx: context
+            The context message involved.
+        channel: discord.TextChannel
+            The channel mention.
+        """
+
+        session = self.bot.helpers.get_db_session()
+        try:
+            self.bot.log.info(
+                f"CMD {ctx.command} called by {ctx.message.author} ({ctx.message.author.id})"
+            )
+
+            # Get the guild settings and update the channel id
+            settings = await self.bot.helpers.get_one_guild_settings(
+                session, ctx.message.guild.id
+            )
+            settings.request_alert_channel = channel.id
+            session.commit()
+
+            # Update local cache
+            self.bot.guild_settings[
+                ctx.message.guild.id
+            ] = await self.bot.helpers.get_one_guild_settings(
+                session, ctx.message.guild.id
+            )
+
+            return await ctx.send(
+                f"Successfully set the channel where requests are sent to: {channel.mention}."
+            )
+
+        except discord.HTTPException as err:
+            self.bot.log.error(
+                f"Discord HTTP Error responding to {ctx.command} request via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        except exc.DBAPIError as err:
+            self.bot.log.exception(
+                f"Database error with {ctx.command} command. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+            session.rollback()
+        except Exception as err:
+            self.bot.log.exception(
+                f"Error responding to {ctx.command} via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        finally:
+            session.close()
+
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    @request.command()
+    async def downvotes(self, ctx, *, enabled: bool):
+        """Sets whether the downvotes feature is enabled or not.
+
+        Example:
+
+        config request downvotes true
+        config request downvotes false
+
+        Requires Permission: Manage Guild
+
+        Parameters
+        -----------
+        ctx: context
+            The context message involved.
+        enabled: bool
+            Whether to enable the feature.
+        """
+
+        session = self.bot.helpers.get_db_session()
+        try:
+            self.bot.log.info(
+                f"CMD {ctx.command} called by {ctx.message.author} ({ctx.message.author.id})"
+            )
+
+            # Get the guild settings
+            settings = await self.bot.helpers.get_one_guild_settings(
+                session, ctx.message.guild.id
+            )
+            settings.allow_downvotes = enabled
+            session.commit()
+
+            # Update local cache
+            self.bot.guild_settings[
+                ctx.message.guild.id
+            ] = await self.bot.helpers.get_one_guild_settings(
+                session, ctx.message.guild.id
+            )
+
+            return await ctx.send(
+                f"Successfully set the Downvotes feature to: {enabled}."
+            )
+
+        except discord.HTTPException as err:
+            self.bot.log.error(
+                f"Discord HTTP Error responding to {ctx.command} request via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        except exc.DBAPIError as err:
+            self.bot.log.exception(
+                f"Database error with {ctx.command} command. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+            session.rollback()
+        except Exception as err:
+            self.bot.log.exception(
+                f"Error responding to {ctx.command} via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        finally:
+            session.close()
+
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    @request.command()
+    async def questions(self, ctx, *, enabled: bool):
+        """Sets whether the questions feature is enabled or not.
+
+        Example:
+
+        config request questions true
+        config request questions false
+
+        Requires Permission: Manage Guild
+
+        Parameters
+        -----------
+        ctx: context
+            The context message involved.
+        enabled: bool
+            Whether to enable the feature.
+        """
+
+        session = self.bot.helpers.get_db_session()
+        try:
+            self.bot.log.info(
+                f"CMD {ctx.command} called by {ctx.message.author} ({ctx.message.author.id})"
+            )
+
+            # Get the guild settings
+            settings = await self.bot.helpers.get_one_guild_settings(
+                session, ctx.message.guild.id
+            )
+            settings.allow_questions = enabled
+            session.commit()
+
+            # Update local cache
+            self.bot.guild_settings[
+                ctx.message.guild.id
+            ] = await self.bot.helpers.get_one_guild_settings(
+                session, ctx.message.guild.id
+            )
+
+            return await ctx.send(
+                f"Successfully set the Questions feature to: {enabled}."
+            )
+
+        except discord.HTTPException as err:
+            self.bot.log.error(
+                f"Discord HTTP Error responding to {ctx.command} request via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        except exc.DBAPIError as err:
+            self.bot.log.exception(
+                f"Database error with {ctx.command} command. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+            session.rollback()
+        except Exception as err:
+            self.bot.log.exception(
+                f"Error responding to {ctx.command} via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        finally:
+            session.close()
+
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    @request.command()
+    async def type(self, ctx, *, request_type: models.RequestType):
+        """Sets the request type for the guild.
+
+        Example:
+
+        config request type suggestion
+        config request type request
+
+        Requires Permission: Manage Guild
+
+        Parameters
+        -----------
+        ctx: context
+            The context message involved.
+        request_type: RequestType
+            What type to set requests to.
+        """
+
+        session = self.bot.helpers.get_db_session()
+        try:
+            self.bot.log.info(
+                f"CMD {ctx.command} called by {ctx.message.author} ({ctx.message.author.id})"
+            )
+
+            # Get the guild settings
+            settings = await self.bot.helpers.get_one_guild_settings(
+                session, ctx.message.guild.id
+            )
+            settings.request_type = request_type
+            session.commit()
+
+            # Update local cache
+            self.bot.guild_settings[
+                ctx.message.guild.id
+            ] = await self.bot.helpers.get_one_guild_settings(
+                session, ctx.message.guild.id
+            )
+
+            return await ctx.send(
+                f"Successfully set the request type to: {enabled}."
+            )
+
+        except discord.HTTPException as err:
+            self.bot.log.error(
+                f"Discord HTTP Error responding to {ctx.command} request via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        except exc.DBAPIError as err:
+            self.bot.log.exception(
+                f"Database error with {ctx.command} command. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+            session.rollback()
+        except Exception as err:
+            self.bot.log.exception(
+                f"Error responding to {ctx.command} via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        finally:
+            session.close()
+
     # AntiSpam Configuration
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
