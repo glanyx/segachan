@@ -51,14 +51,7 @@ class ListRequests(commands.Cog):
                 .all()
             )
 
-            embed_array = []
-            counter = 0
-
-            embed = discord.Embed(
-                color=0x14738E,
-                title="List of Requests",
-                timestamp=datetime.utcnow()
-            )
+            reqeust_array = []
 
             # Loop through existing requests
             for singleRequest in guild_requests:
@@ -68,32 +61,24 @@ class ListRequests(commands.Cog):
                 downvotes = getattr(singleRequest, "downvotes")
                 questions = getattr(singleRequest, "questions")
                 message_id = getattr(singleRequest, "message_id")
-                
                 link = f"https://discord.com/channels/{ctx.guild.id}/{request_channel}/{message_id}"
-                content_length = len(game_title) + len(str(upvotes)) + len(str(downvotes)) + len(str(questions)) + len(link) + 100
-
-                if len(embed) + content_length > 6000:
-                    embed_array.append(embed)
-                    embed = discord.Embed(
-                        color=0x14738E,
-                        title="List of Requests (cont.)",
-                        timestamp=datetime.utcnow()
-                    )
 
                 field_string = f"Upvotes: *{upvotes}*"
                 field_string += f"\nDownvotes: *{downvotes}*" if downvotes_allowed else ""
                 field_string += f"\nQuestions: *{questions}*" if questions_allowed else ""
 
-                embed.add_field(
-                  name=game_title,
-                  value=f"{field_string}\n[Link]({link})",
-                  inline=False
-                )
-                
-            embed_array.append(embed)
+                data_title = game_title
+                data_value = f"{field_string}\n[Link]({link})"
 
-            for embed_chunk in embed_array:
-                await ctx.send(embed=embed_chunk)
+                reqeust_array.append([data_title, data_value])
+
+            p = FieldPages(
+                ctx,
+                per_page=5,
+                entries=reqeust_array,
+            )
+
+            await p.paginate()
 
         except discord.HTTPException as err:
             self.bot.log.exception(
