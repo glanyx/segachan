@@ -192,20 +192,23 @@ class Bot(commands.AutoShardedBot):
         guild = message.guild
         if guild:
           settings = self.guild_settings.get(guild.id)
-          request_channel = settings.request_channel
-          if message.channel.id == request_channel:
-              perms = message.channel.permissions_for(message.author)
-              if (
-                  message.content[1:].startswith('portrequest ')
-                  or message.content[1:].startswith('request ')
-                  or message.content[1:].startswith('rq ')
-                  or message.content[1:].startswith('prq ')
-                  or getattr(perms, 'manage_messages')
-              ):
-                  await self.process_commands(message)
+          if settings.request_channel:
+              request_channel = settings.request_channel
+              if message.channel.id == request_channel:
+                  perms = message.channel.permissions_for(message.author)
+                  if (
+                      message.content[1:].startswith('portrequest ')
+                      or message.content[1:].startswith('request ')
+                      or message.content[1:].startswith('rq ')
+                      or message.content[1:].startswith('prq ')
+                      or getattr(perms, 'manage_messages')
+                  ):
+                      await self.process_commands(message)
+                  else:
+                      await message.delete()
+                      return
               else:
-                  await message.delete()
-                  return
+                  await self.process_commands(message)
           else:
               await self.process_commands(message)
 
