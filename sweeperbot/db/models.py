@@ -249,8 +249,8 @@ class ClubBotPosts(Base):
 # End ClubBot Stuff
 
 class RequestType(Enum):
-    request = 'request',
-    suggestion = 'suggestion',
+    request = "request",
+    suggestion = "suggestion",
 
 class ServerSetting(Base):
     server_id = Column(Integer, ForeignKey("server.id"))

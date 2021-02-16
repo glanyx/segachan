@@ -16,7 +16,7 @@ class Request(commands.Cog):
 
     @commands.has_permissions(send_messages=True)
     @commands.guild_only()
-    @commands.group(aliases=["portrequest", "rq", "prq", "sg", "suggestion"], invoke_without_command=True)
+    @commands.group(aliases=["portrequest", "rq", "prq", "sg", "suggestion", "suggest"], invoke_without_command=True)
     async def request(self, ctx, *, request_body):
         """Takes input as a request and reposts it in a dedicated channel and provides voting reactions to show interest. Logs to database for record keeping. Detects duplication.
 
