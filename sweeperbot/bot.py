@@ -54,8 +54,6 @@ initial_extensions = (
     "cogs.modtools.server",
     "cogs.modtools.rra_role_assignment",
     "cogs.modtools.blacklist",
-    "cogs.modtools.list_requests",
-    "cogs.modtools.close_request",
     # Misc commands
     "cogs.misc.ping",
     "cogs.misc.tags",
