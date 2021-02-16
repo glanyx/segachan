@@ -856,7 +856,7 @@ class Config(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @request.command()
-    async def type(self, ctx, *, request_type: models.RequestType):
+    async def type(self, ctx, *, request_type: str):
         """Sets the request type for the guild.
 
         Example:
@@ -895,7 +895,7 @@ class Config(commands.Cog):
             )
 
             return await ctx.send(
-                f"Successfully set the request type to: {enabled}."
+                f"Successfully set the request type to: {request_type}."
             )
 
         except discord.HTTPException as err:

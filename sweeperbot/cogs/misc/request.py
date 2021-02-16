@@ -8,7 +8,7 @@ from discord.ext import commands
 from sqlalchemy.exc import DBAPIError
 
 from sweeperbot.db import models
-
+from sweeperbot.cogs.utils.paginator import FieldPages
 
 class Request(commands.Cog):
     def __init__(self, bot):
@@ -16,7 +16,7 @@ class Request(commands.Cog):
 
     @commands.has_permissions(send_messages=True)
     @commands.guild_only()
-    @commands.group(aliases=["portrequest", "rq", "prq", "sg", "suggestion"], invoke_without_command=True)
+    @commands.group(aliases=["portrequest", "rq", "prq", "sg", "suggestion", "suggest"], invoke_without_command=True)
     async def request(self, ctx, *, request_body):
         """Takes input as a request and reposts it in a dedicated channel and provides voting reactions to show interest. Logs to database for record keeping. Detects duplication.
 
@@ -381,6 +381,184 @@ class Request(commands.Cog):
         except DBAPIError as err:
             self.bot.log.exception(
                 f"Error closing request for Message ID: ({message_id}). {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+            session.rollback()
+        except Exception as err:
+            self.bot.log.exception(
+                f"Error responding to {ctx.command} via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        finally:
+            session.close()
+            
+    @commands.has_permissions(manage_messages=True)
+    @commands.guild_only()
+    @request.command(aliases=["c", "C"])
+    async def close(self, ctx, message_id):
+        """Closes the specified Request.
+
+        Requires Permission: Manage Messages
+
+        Parameters
+        -----------
+        ctx: context
+            The context message involved.
+        message_id: str
+            The message id of the request.
+        """
+
+        if not message_id:
+            ctx.send("Please enter a Message ID as the argument for this command.")
+            return
+
+        session = self.bot.helpers.get_db_session()
+
+        try:
+            self.bot.log.info(
+                f"CMD {ctx.invoked_with} called by {ctx.message.author} ({ctx.message.author.id})"
+            )
+            
+            guild = ctx.message.guild
+            settings = self.bot.guild_settings.get(guild.id)
+            request_channel = settings.request_channel
+
+            if request_channel is None:
+                  return await ctx.send(
+                    f"No requests channel found. Please set one on the configuration."
+                )
+
+            channel = guild.get_channel(request_channel)
+            
+            found_request = (
+                session.query(models.Requests)
+                .join(models.Server, models.Server.id == models.Requests.server_id)
+                .filter(models.Server.discord_id == guild.id)
+                .filter(models.Requests.message_id == message_id)
+                .first()
+            )
+
+            if not found_request:
+                await ctx.send("Unable to find a Request by the specified Message ID.")
+                return
+
+            found_request.status = models.RequestStatus.closed
+            session.add(found_request)
+            session.commit()
+
+            message = await channel.fetch_message(message_id)
+            await message.delete()
+
+            await ctx.message.delete()
+            await ctx.send(f"Successfully closed the request for `{found_request.text}`!")
+
+        except discord.HTTPException as err:
+            self.bot.log.error(
+                f"Discord HTTP Error responding to {ctx.command} request via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        except DBAPIError as err:
+            self.bot.log.exception(
+                f"Error closing request for Message ID: ({message_id}). {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+            session.rollback()
+        except Exception as err:
+            self.bot.log.exception(
+                f"Error responding to {ctx.command} via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        finally:
+            session.close()
+
+    @commands.has_permissions(manage_messages=True)
+    @commands.guild_only()
+    @request.command(aliases=["l", "L"])
+    async def list(self, ctx):
+        """Gets a list of existing port requests.
+
+        Requires Permission: Manage Messages
+
+        Parameters
+        -----------
+        ctx: context
+            The context message involved.
+        """
+
+        session = self.bot.helpers.get_db_session()
+
+        try:
+            self.bot.log.info(
+                f"CMD {ctx.invoked_with} called by {ctx.message.author} ({ctx.message.author.id})"
+            )
+            
+            guild = ctx.message.guild
+            settings = self.bot.guild_settings.get(guild.id)
+
+            request_channel = settings.request_channel
+            downvotes_allowed = settings.allow_downvotes
+            questions_allowed = settings.allow_questions
+            
+            guild_requests = (
+                session.query(models.Requests)
+                .join(models.Server, models.Server.id == models.Requests.server_id)
+                .filter(models.Server.discord_id == ctx.message.guild.id)
+                .filter(models.Requests.status == models.RequestStatus.open)
+                .order_by(models.Requests.upvotes.desc())
+                .order_by(models.Requests.downvotes.asc())
+                .order_by(models.Requests.text.asc())
+                .all()
+            )
+
+            reqeust_array = []
+
+            # Loop through existing requests
+            for singleRequest in guild_requests:
+
+                game_title = getattr(singleRequest, "text")
+                upvotes = getattr(singleRequest, "upvotes")
+                downvotes = getattr(singleRequest, "downvotes")
+                questions = getattr(singleRequest, "questions")
+                message_id = getattr(singleRequest, "message_id")
+                link = f"https://discord.com/channels/{ctx.guild.id}/{request_channel}/{message_id}"
+
+                field_string = f"Upvotes: *{upvotes}*"
+                field_string += f"\nDownvotes: *{downvotes}*" if downvotes_allowed else ""
+                field_string += f"\nQuestions: *{questions}*" if questions_allowed else ""
+
+                data_title = game_title
+                data_value = f"{field_string}\n[Link]({link})"
+
+                reqeust_array.append([data_title, data_value])
+
+            p = FieldPages(
+                ctx,
+                per_page=5,
+                entries=reqeust_array,
+            )
+
+            await p.paginate()
+
+        except discord.HTTPException as err:
+            self.bot.log.exception(
+                f"Discord HTTP Error responding to {ctx.command} request via Msg ID {ctx.message.id}. {sys.exc_info()[0].__name__}: {err}"
+            )
+            await ctx.send(
+                f"Error processing {ctx.command}. Error has already been reported to my developers."
+            )
+        except DBAPIError as err:
+            self.bot.log.exception(
+                f"Error logging note to database. {sys.exc_info()[0].__name__}: {err}"
             )
             await ctx.send(
                 f"Error processing {ctx.command}. Error has already been reported to my developers."

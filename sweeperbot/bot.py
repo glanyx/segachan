@@ -54,8 +54,6 @@ initial_extensions = (
     "cogs.modtools.server",
     "cogs.modtools.rra_role_assignment",
     "cogs.modtools.blacklist",
-    "cogs.modtools.list_requests",
-    "cogs.modtools.close_request",
     # Misc commands
     "cogs.misc.ping",
     "cogs.misc.tags",
@@ -192,23 +190,20 @@ class Bot(commands.AutoShardedBot):
         guild = message.guild
         if guild:
           settings = self.guild_settings.get(guild.id)
-          if settings.request_channel:
-              request_channel = settings.request_channel
-              if message.channel.id == request_channel:
-                  perms = message.channel.permissions_for(message.author)
-                  if (
-                      message.content[1:].startswith('portrequest ')
-                      or message.content[1:].startswith('request ')
-                      or message.content[1:].startswith('rq ')
-                      or message.content[1:].startswith('prq ')
-                      or getattr(perms, 'manage_messages')
-                  ):
-                      await self.process_commands(message)
-                  else:
-                      await message.delete()
-                      return
-              else:
+          command = self.get_command('request')
+          userCommand = message.content[1:].split()[0]
+          request_channel = settings.request_channel
+
+          if message.channel.id == request_channel:
+              perms = message.channel.permissions_for(message.author)
+              if (
+                  userCommand in [command.name] + command.aliases
+                  or getattr(perms, 'manage_messages')
+              ):
                   await self.process_commands(message)
+              else:
+                  await message.delete()
+                  return
           else:
               await self.process_commands(message)
 
