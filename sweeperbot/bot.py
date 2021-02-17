@@ -191,7 +191,7 @@ class Bot(commands.AutoShardedBot):
         if guild:
           settings = self.guild_settings.get(guild.id)
           command = self.get_command('request')
-          userCommand = message.content[1:].split()[0]
+          userCommand = (message.content[1:] or 'none').split()[0]
           request_channel = settings.request_channel
 
           if message.channel.id == request_channel:
